@@ -1,0 +1,1 @@
+`pyinstaller --onefile --windowed --icon=map-tool.ico --add-data "map-tool.ico;." simpleCalc.py`
