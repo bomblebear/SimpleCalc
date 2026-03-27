@@ -23,7 +23,28 @@ def resource_path(relative_path):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
 
+def set_app_icon(root):
+    """设置应用图标，兼容 macOS/Windows"""
+    icon_path = resource_path("map-tool.ico")
+    if platform.system() == "Darwin":
+        try:
+            root.iconname("SimpleCalc")
+        except Exception:
+            pass
+    else:
+        try:
+            root.iconbitmap(icon_path)
+        except Exception:
+            pass
+
 import webbrowser
+import platform
+
+def get_font():
+    if platform.system() == "Darwin":
+        return ("Arial", 9), ("Arial", 10), ("Arial", 10), ("Arial", 10), (None, 9)
+    return ("Microsoft YaHei", 9), ("Microsoft YaHei", 10), ("Microsoft YaHei", 10), ("Arial", 10), (None, 9)
+
 class MapGridApp:
     def __init__(self, root):
         self.root = root
@@ -35,11 +56,12 @@ class MapGridApp:
 
         smallSize = 9
         middleSize = 10
-        link_conf = {"font": ('Microsoft YaHei', smallSize, "bold"), "fg": "blue"}
-        input_conf = {"font": ('Microsoft YaHei', middleSize), "fg": "black"}
-        button_conf = {"font": ('Microsoft YaHei', middleSize, "bold")}
-        output_conf = {"font": ('Microsoft YaHei', middleSize), "fg": "black"}
-        tip_conf = {"font": (None, smallSize, "bold"), "fg": "red"}
+        font_link, font_input, font_button, font_output, font_tip = get_font()
+        link_conf = {"font": font_link, "fg": "blue"}
+        input_conf = {"font": font_input, "fg": "black"}
+        button_conf = {"font": font_button, "fg": "black"}
+        output_conf = {"font": font_output, "fg": "black"}
+        tip_conf = {"font": font_tip, "fg": "red"}
 
         def open_link(event):
             webbrowser.open("https://github.com/bomblebear")  # 点击后打开百度
@@ -92,15 +114,15 @@ class MapGridApp:
 
         tk.Label(root, text="输入数据后请按回车保存", **tip_conf).pack(anchor="nw", padx=10, pady=2)
 
-        # --- tksheet ---
+        sheet_font = ("Arial", middleSize, "normal") if platform.system() == "Darwin" else ("Microsoft YaHei", middleSize, "normal")
         self.sheet = Sheet(
             root,
             data=[],
             headers=[],
             show_row_index=True,
-            font=('Microsoft YaHei', middleSize, "normal"),
-            header_font=('Microsoft YaHei', middleSize, "normal"),
-            index_font=('Microsoft YaHei', middleSize, "normal"),
+            font=sheet_font,
+            header_font=sheet_font,
+            index_font=sheet_font,
         )
         self.sheet.enable_bindings((
             "all",           # 包含 edit_cell, edit_header, edit_index, copy, paste 等
@@ -232,6 +254,6 @@ class MapGridApp:
 if __name__=="__main__":
     root = tk.Tk()
     root.geometry("1000x700")
-    root.iconbitmap(resource_path("map-tool.ico"))
+    set_app_icon(root)
     app = MapGridApp(root)
     root.mainloop()
